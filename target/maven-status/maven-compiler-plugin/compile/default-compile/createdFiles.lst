@@ -1,0 +1,7 @@
+me/quaky/dceconomy/files/KeysFile.class
+me/quaky/dceconomy/files/UsersFile.class
+me/quaky/dceconomy/commands/subcommands/gems/Add.class
+me/quaky/dceconomy/Main.class
+me/quaky/dceconomy/commands/subcommands/gems/Remove.class
+me/quaky/dceconomy/commands/subcommands/gems/SubCommand.class
+me/quaky/dceconomy/commands/GemsCommandManager.class
