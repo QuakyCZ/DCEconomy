@@ -1,5 +1,6 @@
 package me.quaky.dceconomy.files;
 
+import me.quaky.dcfactions.files.ConfigFile;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 
@@ -20,10 +21,11 @@ public class KeysFile {
 
         keys = new File(getServer().getPluginManager().getPlugin("DCFactions").getDataFolder(), "keys.yml");
         if (!keys.exists()) {
-            getServer().getPluginManager().getPlugin("DCFactions").saveResource("keys.yml",false);
+            getServer().getPluginManager().getPlugin("DCFactions").saveResource("keys.yml", false);
         }
         keysYaml = YamlConfiguration.loadConfiguration(keys);
-        generateNewKey();
+        if(ConfigFile.get().getBoolean("debug.keygen"))
+            generateNewKey();
     }
 
     public static FileConfiguration get() {
@@ -33,6 +35,7 @@ public class KeysFile {
     public static void save() {
         try {
             keysYaml.save(keys);
+            reload();
         } catch (IOException e) {
             getLogger().info("Couldn't save the file.");
         }
@@ -44,30 +47,30 @@ public class KeysFile {
 
     /**
      * If the key is in the file and if it's unused, it will use it.
-     * @param key the checked key
+     *
+     * @param key            the checked key
      * @param generateNewKey generate new key?
      * @throws AuthenticationException if the key doesn't exist or the key has been already used.
      */
     public static void authorize(String key, boolean generateNewKey) throws AuthenticationException {
-        byte[] encoded = Base64.getEncoder().encode(key.getBytes());
-        if(get().get(encoded.toString())==null){
+        String encoded = new String(Base64.getEncoder().encode(key.getBytes()));
+        if (get().get(encoded) == null) {
             throw new AuthenticationException("Key doesn't exist.");
         }
-        if(KeysFile.get().getBoolean(encoded.toString()+".used")==true){
+        if (KeysFile.get().getBoolean(encoded + ".used") == true) {
             throw new AuthenticationException("This key has been already used.");
         }
-        KeysFile.get().set(encoded.toString()+".used",true);
+        KeysFile.get().set(encoded + ".used", true);
         save();
-        reload();
-        if(generateNewKey)
-            generateNewKey();
 
+        if (generateNewKey)
+            generateNewKey();
     }
 
     /**
      * Generates new key and saves it to the file.
      */
-    public static void generateNewKey(){
+    public static void generateNewKey() {
         int leftLimit = 48; // numeral '0'
         int rightLimit = 122; // letter 'z'
         int targetStringLength = 10;
@@ -80,13 +83,14 @@ public class KeysFile {
                 .toString();
         String encoded = new String(Base64.getEncoder().encode(generatedString.getBytes()));
 
-        //getLogger().info("String: " + generatedString + " encoded: " + encoded);
+        if (ConfigFile.get().getBoolean("debug.keygen") == true)
+            getLogger().info("String: " + generatedString + " encoded: " + encoded);
 
-        if(get().get(encoded)!=null){
+        if (get().get(encoded) != null) {
             generateNewKey();
-        }else{
-            get().addDefault(encoded,null);
-            get().set(encoded+".used",false);
+        } else {
+            get().addDefault(encoded, null);
+            get().set(encoded + ".used", false);
             save();
             reload();
         }

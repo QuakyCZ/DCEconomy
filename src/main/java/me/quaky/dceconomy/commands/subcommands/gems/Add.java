@@ -1,7 +1,7 @@
 package me.quaky.dceconomy.commands.subcommands.gems;
 
 import me.quaky.dceconomy.files.KeysFile;
-import me.quaky.dceconomy.files.UsersFile;
+import me.quaky.dcfactions.files.UsersFile;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
@@ -40,11 +40,14 @@ public class Add extends SubCommand {
 
         this.sender = sender;
 
-        // 2. Some basic security
+        // 2. Some basic security TODO: it's not safe way!!
 
-        authorize(args[3]);
-
-        KeysFile.generateNewKey();
+        try {
+            KeysFile.authorize(args[3], true);
+        } catch (AuthenticationException e) {
+            sender.sendMessage(e.getExplanation());
+            return;
+        }
 
         // 3. add gems
 
@@ -62,23 +65,10 @@ public class Add extends SubCommand {
         if (UsersFile.get().get(playerName) != null) {
             int gems = UsersFile.get().getInt(playerName + ".gems");
             UsersFile.get().set(playerName + ".gems", gems + gemsToAdd);
+            UsersFile.save();
             sender.sendMessage(gemsToAdd + " gems were added to " + playerName);
         } else {
             sender.sendMessage("This player doesn't exist.");
-        }
-    }
-
-    /**
-     * Tries to authorize the given key
-     *
-     * @param key key
-     */
-    private void authorize(String key) {
-        try {
-            KeysFile.authorize(key, true);
-        } catch (AuthenticationException e) {
-            sender.sendMessage(e.getExplanation());
-            return;
         }
     }
 }

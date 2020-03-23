@@ -3,7 +3,7 @@ package me.quaky.dceconomy.commands;
 import me.quaky.dceconomy.commands.subcommands.gems.Add;
 import me.quaky.dceconomy.commands.subcommands.gems.Remove;
 import me.quaky.dceconomy.commands.subcommands.gems.SubCommand;
-import me.quaky.dceconomy.files.UsersFile;
+import me.quaky.dcfactions.files.UsersFile;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;

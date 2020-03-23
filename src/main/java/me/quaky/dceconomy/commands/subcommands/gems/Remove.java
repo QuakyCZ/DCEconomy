@@ -1,13 +1,14 @@
 package me.quaky.dceconomy.commands.subcommands.gems;
 
 import me.quaky.dceconomy.files.KeysFile;
-import me.quaky.dceconomy.files.UsersFile;
+import me.quaky.dcfactions.files.UsersFile;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 import javax.naming.AuthenticationException;
 
 import static org.bukkit.Bukkit.getLogger;
+import static org.bukkit.Bukkit.getPlayer;
 
 public class Remove extends SubCommand {
     @Override
@@ -39,18 +40,22 @@ public class Remove extends SubCommand {
         }
 
         this.sender = sender;
-
+        String playerName = args[1];
+        /*if (UsersFile.get().get(playerName) == null) {
+            sender.sendMessage("This player doesn't exist.");
+            return;
+        }*/
         // 2. Some basic security
 
-        if(!authorize(args[3])){
-            return;
+        try {
+            KeysFile.authorize(args[3], true);
+        } catch (AuthenticationException e) {
+            sender.sendMessage(e.getExplanation());
         }
-
-        KeysFile.generateNewKey();
 
         // 3. remove gems
 
-        String playerName = args[1];
+        // Try to get player's gems
         int gemsToRemove;
 
         try {
@@ -61,29 +66,18 @@ public class Remove extends SubCommand {
             return;
         }
 
-        if (UsersFile.get().get(playerName) != null) {
-            int gems = UsersFile.get().getInt(playerName + ".gems");
-            if(gems-gemsToRemove<0){
-                gemsToRemove=gems;
-            }
-            UsersFile.get().set(playerName + ".gems", gems - gemsToRemove);
-            sender.sendMessage(gemsToRemove + " gems were removed from " + playerName);
-        } else {
-            sender.sendMessage("This player doesn't exist.");
+        int gems = UsersFile.get().getInt(playerName + ".gems");
+        if(gems-gemsToRemove<0){
+            gemsToRemove=gems;
         }
-    }
 
-    /**
-     * Tries to authorize the given key
-     * @param key key
-     */
-    private boolean authorize(String key) {
-        try {
-            KeysFile.authorize(key, true);
-            return true;
-        } catch (AuthenticationException e) {
-            sender.sendMessage(e.getExplanation());
-            return false;
-        }
+        // Save users file
+        UsersFile.get().set(playerName + ".gems", gems - gemsToRemove);
+        UsersFile.save();
+
+        // Send message to the sender that the command was performed.
+        sender.sendMessage(playerName + " lost " + gemsToRemove + "gems.");
+        getPlayer(playerName).sendMessage("You lost " + gemsToRemove + "gems.");
+
     }
 }
